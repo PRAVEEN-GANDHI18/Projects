@@ -1,0 +1,55 @@
+close all;
+clc;
+
+% Initialize the recorder to capture audio
+recorder = audiorecorder(16000, 8, 2);
+
+% Record the user's voice
+disp('Please Record your voice');
+drawnow();
+pause(1);
+recordblocking(recorder, 5);
+play(recorder);
+data = getaudiodata(recorder);
+
+% Plot the recorded audio
+plot(data);
+figure;
+
+% Extract voice features (you need to define the voicefeatures function)
+f = voicefeatures(data);
+
+% Load the database (make sure it contains user features and commands)
+load database.mat
+
+D = [];
+for i = 1:size(F, 1)
+    d = sum(abs(F(i) - f));
+    D = [D d];
+end
+sm = inf;
+ind = -1;
+for i = 1:length(D)
+    if D(i) < sm
+        sm = D(i);
+        ind = i;
+    end
+end
+
+detected_class = C(ind);
+disp('the detected class is:');
+disp(detected_class);
+count=1;
+% Check if the detected user corresponds to a specific command
+if detected_class == 1  % Replace 1 with the user number for whom you want to trigger the LED
+    count=count+1;
+    disp('User 1 detected. Turning on LED...');
+    % Initialize Arduino connection
+    a = arduino();
+    ledPin = 'D13';  % Digital pin where the LED is connected
+    writeDigitalPin(a, ledPin, 1);  % Turn the LED on
+    pause(3);  % Wait for 2 seconds
+    writeDigitalPin(a, ledPin, 0);  % Turn the LED off
+    pause(1);
+    clear a;  % Close the Arduino connection
+end
